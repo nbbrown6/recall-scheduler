@@ -80,11 +80,26 @@ A deck file looks like:
 Blank lines and lines starting with `#` are ignored, so decks can carry
 comments.
 
+## Saving a deck
+
+`write_cards` takes the same kind of destination as the loaders accept
+for sources: a file path, an already-open file object, or nothing at
+all (meaning write to stdout).
+
+```python
+from recall_scheduler import write_cards
+
+write_cards(deck, "deck.jsonl")
+```
+
+The output is newline-delimited JSON with one card per line, so it
+reads back in with `load_cards` unchanged.
+
 ## Status
 
-Early skeleton. The scheduling math and the file/stdin readers are real,
-but there's no writer yet, no CLI, and no packaging beyond a bare
-`pyproject.toml`.
+Early skeleton. The scheduling math and the file/stdin readers and
+writer are real, but there's no CLI yet, no test suite, and no
+packaging beyond a bare `pyproject.toml`.
 
 ## License
 
