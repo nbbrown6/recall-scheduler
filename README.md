@@ -46,6 +46,29 @@ print(card.due_date)
 card and its streak resets, 3-5 means you recalled it with decreasing
 amounts of effort.
 
+## Leitner box scheduling
+
+If you want something coarser and easier to reason about than SM-2,
+`recall_scheduler.leitner` implements the [Leitner
+system](https://en.wikipedia.org/wiki/Leitner_system): cards live in
+numbered boxes, recall moves a card up a box, forgetting sends it back
+to box one. Box number maps to a review interval through a fixed
+schedule (`DEFAULT_BOX_INTERVALS`, in days).
+
+```python
+from datetime import date
+from recall_scheduler import LeitnerCard, leitner_review
+
+card = LeitnerCard(front="capital of France", back="Paris")
+card = leitner_review(card, recalled=True, on=date(2026, 8, 29))
+print(card.box, card.due_date)
+# 2 2026-08-31
+```
+
+`LeitnerCard` and `Card` are separate types with separate `review`
+functions (`review` for SM-2, `leitner_review` for Leitner) since the
+two algorithms track different state; pick one per deck.
+
 ## Reading cards from files or stdin
 
 Card decks are stored as newline-delimited JSON, one card per line. The
@@ -105,9 +128,10 @@ python -m unittest discover
 
 ## Status
 
-Early skeleton. The scheduling math, the file/stdin readers and writer,
-and the test suite are real, but there's no CLI yet and no packaging
-beyond a bare `pyproject.toml`.
+Early skeleton. The SM-2 and Leitner scheduling math, the file/stdin
+readers and writer, and the test suite are real, but there's no CLI
+yet and no packaging beyond a bare `pyproject.toml`. `write_cards` and
+the file/stdin readers only handle `Card` (SM-2) decks so far.
 
 ## License
 
