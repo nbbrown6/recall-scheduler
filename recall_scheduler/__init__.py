@@ -5,6 +5,7 @@ from .leitner import DEFAULT_BOX_INTERVALS, LeitnerCard
 from .leitner import due_cards as leitner_due_cards
 from .leitner import review as leitner_review
 from .io import iter_cards, load_cards, write_cards
+from .io import iter_leitner_cards, load_leitner_cards, write_leitner_cards
 
 __all__ = [
     "Card",
@@ -19,4 +20,7 @@ __all__ = [
     "DEFAULT_BOX_INTERVALS",
     "leitner_review",
     "leitner_due_cards",
+    "iter_leitner_cards",
+    "load_leitner_cards",
+    "write_leitner_cards",
 ]

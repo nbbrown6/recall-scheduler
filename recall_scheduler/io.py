@@ -7,6 +7,7 @@ import sys
 from contextlib import contextmanager
 from typing import Iterable, Iterator, TextIO, Union
 
+from .leitner import LeitnerCard
 from .scheduler import Card
 
 Source = Union[str, "os.PathLike[str]", TextIO, None]
@@ -77,6 +78,42 @@ def write_cards(cards: Iterable[Card], dest: Dest = None) -> None:
 
     One JSON object per line, so the output round-trips through
     load_cards. See Dest for what dest may be.
+    """
+    with _open_dest(dest) as f:
+        for card in cards:
+            f.write(json.dumps(card.to_dict()))
+            f.write("\n")
+
+
+def iter_leitner_cards(source: Source = None) -> Iterator[LeitnerCard]:
+    """Lazily parse a newline-delimited JSON deck into LeitnerCard objects.
+
+    Same format and comment/blank-line handling as iter_cards, but for
+    the Leitner box scheduler's card type. See Source for what source
+    may be.
+    """
+    with _open_source(source) as f:
+        for lineno, raw_line in enumerate(f, start=1):
+            line = raw_line.strip()
+            if not line or line.startswith("#"):
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"line {lineno}: invalid JSON ({exc})") from None
+            yield LeitnerCard.from_dict(record)
+
+
+def load_leitner_cards(source: Source = None) -> list[LeitnerCard]:
+    """Eagerly load a deck into a list. See iter_leitner_cards for accepted sources."""
+    return list(iter_leitner_cards(source))
+
+
+def write_leitner_cards(cards: Iterable[LeitnerCard], dest: Dest = None) -> None:
+    """Write LeitnerCard cards as newline-delimited JSON to dest.
+
+    One JSON object per line, so the output round-trips through
+    load_leitner_cards. See Dest for what dest may be.
     """
     with _open_dest(dest) as f:
         for card in cards:

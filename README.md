@@ -103,6 +103,9 @@ A deck file looks like:
 Blank lines and lines starting with `#` are ignored, so decks can carry
 comments.
 
+`LeitnerCard` decks use the same format through `load_leitner_cards` and
+`iter_leitner_cards` instead.
+
 ## Saving a deck
 
 `write_cards` takes the same kind of destination as the loaders accept
@@ -116,7 +119,8 @@ write_cards(deck, "deck.jsonl")
 ```
 
 The output is newline-delimited JSON with one card per line, so it
-reads back in with `load_cards` unchanged.
+reads back in with `load_cards` unchanged. `write_leitner_cards` does
+the same for `LeitnerCard` decks.
 
 ## Testing
 
@@ -129,9 +133,8 @@ python -m unittest discover
 ## Status
 
 Early skeleton. The SM-2 and Leitner scheduling math, the file/stdin
-readers and writer, and the test suite are real, but there's no CLI
-yet and no packaging beyond a bare `pyproject.toml`. `write_cards` and
-the file/stdin readers only handle `Card` (SM-2) decks so far.
+readers and writer for both card types, and the test suite are real,
+but there's no CLI yet and no packaging beyond a bare `pyproject.toml`.
 
 ## License
 
