@@ -6,6 +6,7 @@ from .leitner import due_cards as leitner_due_cards
 from .leitner import review as leitner_review
 from .io import iter_cards, load_cards, write_cards
 from .io import iter_leitner_cards, load_leitner_cards, write_leitner_cards
+from .stats import ReviewStats, quality_passed, summarize
 
 __all__ = [
     "Card",
@@ -23,4 +24,7 @@ __all__ = [
     "iter_leitner_cards",
     "load_leitner_cards",
     "write_leitner_cards",
+    "ReviewStats",
+    "summarize",
+    "quality_passed",
 ]

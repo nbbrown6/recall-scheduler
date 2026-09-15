@@ -122,6 +122,32 @@ The output is newline-delimited JSON with one card per line, so it
 reads back in with `load_cards` unchanged. `write_leitner_cards` does
 the same for `LeitnerCard` decks.
 
+## Stats
+
+Neither `Card` nor `LeitnerCard` stores a log of past reviews, just the
+current scheduling state, so `recall_scheduler.stats` works on whatever
+outcome history you keep yourself: a sequence of booleans, oldest
+first, meaning whether you recalled the card that time.
+
+```python
+from recall_scheduler import summarize
+
+stats = summarize([True, True, False, True, True, True])
+print(stats.retention_rate, stats.current_streak, stats.longest_streak)
+# 0.8333333333333334 3 3
+```
+
+If you're tracking SM-2 quality scores instead of plain booleans,
+`quality_passed` converts one using the same 0-5 scale `review` uses
+(3 and up counts as recalled):
+
+```python
+from recall_scheduler import quality_passed, summarize
+
+qualities = [4, 5, 2, 4]
+stats = summarize(quality_passed(q) for q in qualities)
+```
+
 ## Testing
 
 Run the test suite with:
@@ -133,8 +159,9 @@ python -m unittest discover
 ## Status
 
 Early skeleton. The SM-2 and Leitner scheduling math, the file/stdin
-readers and writer for both card types, and the test suite are real,
-but there's no CLI yet and no packaging beyond a bare `pyproject.toml`.
+readers and writer for both card types, the retention/streak stats
+helper, and the test suite are real, but there's no CLI yet, no CSV
+deck format, and no packaging beyond a bare `pyproject.toml`.
 
 ## License
 
