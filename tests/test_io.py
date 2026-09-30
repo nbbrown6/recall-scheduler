@@ -9,8 +9,10 @@ from recall_scheduler.io import (
     iter_cards,
     iter_leitner_cards,
     load_cards,
+    load_csv_cards,
     load_leitner_cards,
     write_cards,
+    write_csv_cards,
     write_leitner_cards,
 )
 from recall_scheduler.leitner import LeitnerCard
@@ -123,6 +125,80 @@ class WriteLeitnerCardsTests(unittest.TestCase):
                 lines = f.readlines()
         self.assertEqual(len(lines), 1)
         self.assertEqual(json.loads(lines[0])["front"], "q")
+
+
+class CsvCardsTests(unittest.TestCase):
+    def test_reads_header_and_applies_defaults_for_empty_cells(self):
+        stream = io.StringIO(
+            "front,back,due_date,interval,ease_factor\n"
+            "capital of France,Paris,,,\n"
+            "capital of Peru,Lima,2026-09-01,6,2.1\n"
+        )
+        cards = load_csv_cards(stream)
+        self.assertEqual(len(cards), 2)
+        self.assertEqual(cards[0].interval, 0)
+        self.assertEqual(cards[0].ease_factor, 2.5)
+        self.assertEqual(cards[1].due_date, date(2026, 9, 1))
+        self.assertEqual(cards[1].interval, 6)
+        self.assertEqual(cards[1].ease_factor, 2.1)
+
+    def test_quoted_fields_with_commas(self):
+        stream = io.StringIO('front,back\n"one, two",three\n')
+        cards = load_csv_cards(stream)
+        self.assertEqual(cards[0].front, "one, two")
+
+    def test_missing_required_column_reports_line_number(self):
+        stream = io.StringIO("front,back\nq,a\nonly-front,\n")
+        with self.assertRaises(ValueError) as ctx:
+            load_csv_cards(stream)
+        self.assertIn("line 3", str(ctx.exception))
+
+    def test_bad_number_reports_line_number(self):
+        stream = io.StringIO("front,back,interval\nq,a,soon\n")
+        with self.assertRaises(ValueError) as ctx:
+            load_csv_cards(stream)
+        self.assertIn("line 2", str(ctx.exception))
+
+    def test_round_trips_sm2_cards(self):
+        deck = [
+            Card(front="a, with comma", back="1"),
+            Card(
+                front="b",
+                back="2",
+                due_date=date(2026, 1, 1),
+                interval=6,
+                repetitions=2,
+                ease_factor=2.36,
+                last_reviewed=date(2025, 12, 26),
+            ),
+        ]
+        stream = io.StringIO()
+        write_csv_cards(deck, stream)
+        stream.seek(0)
+        self.assertEqual(load_csv_cards(stream), deck)
+
+    def test_round_trips_leitner_cards(self):
+        deck = [
+            LeitnerCard(front="a", back="1"),
+            LeitnerCard(front="b", back="2", box=3, due_date=date(2026, 1, 1)),
+        ]
+        stream = io.StringIO()
+        write_csv_cards(deck, stream, card_type=LeitnerCard)
+        stream.seek(0)
+        self.assertEqual(load_csv_cards(stream, card_type=LeitnerCard), deck)
+
+    def test_empty_deck_still_writes_header(self):
+        stream = io.StringIO()
+        write_csv_cards([], stream, card_type=LeitnerCard)
+        self.assertTrue(stream.getvalue().startswith("front,back,box,"))
+
+    def test_writes_to_path(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "deck.csv")
+            write_csv_cards([Card(front="q", back="a")], path)
+            cards = load_csv_cards(path)
+        self.assertEqual(len(cards), 1)
+        self.assertEqual(cards[0].back, "a")
 
 
 if __name__ == "__main__":

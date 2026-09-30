@@ -122,6 +122,31 @@ The output is newline-delimited JSON with one card per line, so it
 reads back in with `load_cards` unchanged. `write_leitner_cards` does
 the same for `LeitnerCard` decks.
 
+## CSV decks
+
+Decks can also be CSV, which is easier to produce from a spreadsheet.
+The first row is a header using the same field names as the JSONL format;
+`front` and `back` are required and every other column is optional, with
+empty cells falling back to the card's defaults.
+
+```
+front,back,due_date
+capital of France,Paris,
+capital of Peru,Lima,2026-09-01
+```
+
+```python
+from recall_scheduler import LeitnerCard, load_csv_cards, write_csv_cards
+
+deck = load_csv_cards("deck.csv")
+leitner_deck = load_csv_cards("deck.csv", card_type=LeitnerCard)
+write_csv_cards(deck, "out.csv")
+```
+
+`card_type` defaults to `Card`. Pass `LeitnerCard` to read or write the
+Leitner columns instead. Unlike JSONL, `#` comment lines are not skipped,
+because a leading `#` can be real card text.
+
 ## Stats
 
 Neither `Card` nor `LeitnerCard` stores a log of past reviews, just the
@@ -160,8 +185,8 @@ python -m unittest discover
 
 Early skeleton. The SM-2 and Leitner scheduling math, the file/stdin
 readers and writer for both card types, the retention/streak stats
-helper, and the test suite are real, but there's no CLI yet, no CSV
-deck format, and no packaging beyond a bare `pyproject.toml`.
+helper, CSV deck support, and the test suite are real, but there's no
+CLI yet and no packaging beyond a bare `pyproject.toml`.
 
 ## License
 
